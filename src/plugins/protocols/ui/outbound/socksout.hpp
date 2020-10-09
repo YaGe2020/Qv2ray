@@ -38,10 +38,11 @@ class SocksOutboundEditor
             socks_PasswordTxt->setText(socks.users.first().pass);
         })
     }
+
     const QJsonObject GetContent() const override
     {
         auto result = socks.toJson();
-        if (socks.users.isEmpty())
+        if (socks.users.isEmpty() || (socks.users.first().user.isEmpty() && socks.users.first().pass.isEmpty()))
             result.remove("users");
         return QJsonObject{ { "servers", QJsonArray{ result } } };
     }

@@ -10,18 +10,18 @@ using Qv2ray::common::validation::IsIPv6Address;
 using Qv2ray::common::validation::IsValidDNSServer;
 using Qv2ray::common::validation::IsValidIPAddress;
 
-#define CHECK_DISABLE_MOVE_BTN                                                                                                                  \
-    if (serversListbox->count() <= 1)                                                                                                           \
-    {                                                                                                                                           \
-        moveServerUpBtn->setEnabled(false);                                                                                                     \
-        moveServerDownBtn->setEnabled(false);                                                                                                   \
+#define CHECK_DISABLE_MOVE_BTN                                                                                                                       \
+    if (serversListbox->count() <= 1)                                                                                                                \
+    {                                                                                                                                                \
+        moveServerUpBtn->setEnabled(false);                                                                                                          \
+        moveServerDownBtn->setEnabled(false);                                                                                                        \
     }
 
-#define UPDATEUI                                                                                                                                \
-    detailsSettingsGB->setEnabled(serversListbox->count() > 0);                                                                                 \
-    serverAddressTxt->setEnabled(serversListbox->count() > 0);                                                                                  \
-    removeServerBtn->setEnabled(serversListbox->count() > 0);                                                                                   \
-    ProcessDnsPortEnabledState();                                                                                                               \
+#define UPDATEUI                                                                                                                                     \
+    detailsSettingsGB->setEnabled(serversListbox->count() > 0);                                                                                      \
+    serverAddressTxt->setEnabled(serversListbox->count() > 0);                                                                                       \
+    removeServerBtn->setEnabled(serversListbox->count() > 0);                                                                                        \
+    ProcessDnsPortEnabledState();                                                                                                                    \
     CHECK_DISABLE_MOVE_BTN
 
 #define currentServerIndex serversListbox->currentRow()
@@ -126,11 +126,11 @@ void DnsSettingsWidget::ShowCurrentDnsServerDetails()
     //
     if (serverAddressTxt->text().isEmpty() || IsValidDNSServer(serverAddressTxt->text()))
     {
-        BLACK(serverAddressTxt)
+        BLACK(serverAddressTxt);
     }
     else
     {
-        RED(serverAddressTxt)
+        RED(serverAddressTxt);
     }
     ProcessDnsPortEnabledState();
 }
@@ -235,11 +235,11 @@ void DnsSettingsWidget::on_serverAddressTxt_textEdited(const QString &arg1)
     serversListbox->currentItem()->setText(arg1);
     if (arg1.isEmpty() || IsValidDNSServer(arg1))
     {
-        BLACK(serverAddressTxt)
+        BLACK(serverAddressTxt);
     }
     else
     {
-        RED(serverAddressTxt)
+        RED(serverAddressTxt);
     }
 
     ProcessDnsPortEnabledState();

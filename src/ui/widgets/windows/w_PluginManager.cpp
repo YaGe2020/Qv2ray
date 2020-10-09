@@ -7,8 +7,13 @@
 
 #include <QDesktopServices>
 
-PluginManageWindow::PluginManageWindow(QWidget *parent) : QvDialog(parent)
+PluginManageWindow::PluginManageWindow(QWidget *parent) : QvDialog("PluginManager", parent)
 {
+    addStateOptions("width", { [&] { return width(); }, [&](QJsonValue val) { resize(val.toInt(), size().height()); } });
+    addStateOptions("height", { [&] { return height(); }, [&](QJsonValue val) { resize(size().width(), val.toInt()); } });
+    addStateOptions("x", { [&] { return x(); }, [&](QJsonValue val) { move(val.toInt(), y()); } });
+    addStateOptions("y", { [&] { return y(); }, [&](QJsonValue val) { move(x(), val.toInt()); } });
+
     setupUi(this);
     for (auto &plugin : PluginHost->AllPlugins())
     {
@@ -23,6 +28,10 @@ PluginManageWindow::PluginManageWindow(QWidget *parent) : QvDialog(parent)
     isLoading = false;
     if (pluginListWidget->count() > 0)
         on_pluginListWidget_currentItemChanged(pluginListWidget->item(0), nullptr);
+}
+
+QvMessageBusSlotImpl(PluginManageWindow)
+{
 }
 
 PluginManageWindow::~PluginManageWindow()
@@ -40,7 +49,7 @@ void PluginManageWindow::on_pluginListWidget_currentItemChanged(QListWidgetItem 
         pluginSettingsLayout->removeWidget(currentSettingsWidget.get());
         currentSettingsWidget.reset();
     }
-
+    pluginIconLabel->clear();
     if (!current)
         return;
 
@@ -60,22 +69,28 @@ void PluginManageWindow::on_pluginListWidget_currentItemChanged(QListWidgetItem 
         pluginUnloadLabel->setText(tr("Plugin Not Loaded"));
         return;
     }
-    const auto pluginUIInterface = currentPluginInfo->pluginInterface->GetGUIInterface();
-    if (currentPluginInfo->hasComponent(COMPONENT_GUI) && pluginUIInterface->GetComponents().contains(GUI_COMPONENT_SETTINGS))
+
+    if (currentPluginInfo->hasComponent(COMPONENT_GUI))
     {
+        const auto pluginUIInterface = currentPluginInfo->pluginInterface->GetGUIInterface();
         pluginGuiComponentsLabel->setText(GetPluginComponentsString(pluginUIInterface->GetComponents()).join(NEWLINE));
-        pluginIconLabel->setPixmap({});
-        pluginIconLabel->clear();
         pluginIconLabel->setPixmap(pluginUIInterface->Icon().pixmap(pluginIconLabel->size() * devicePixelRatio()));
-        currentSettingsWidget = pluginUIInterface->GetSettingsWidget();
-        currentSettingsWidget->SetSettings(currentPluginInfo->pluginInterface->GetSettngs());
-        pluginUnloadLabel->setVisible(false);
-        pluginSettingsLayout->addWidget(currentSettingsWidget.get());
+        if (pluginUIInterface->GetComponents().contains(GUI_COMPONENT_SETTINGS))
+        {
+            currentSettingsWidget = pluginUIInterface->GetSettingsWidget();
+            currentSettingsWidget->SetSettings(currentPluginInfo->pluginInterface->GetSettngs());
+            pluginUnloadLabel->setVisible(false);
+            pluginSettingsLayout->addWidget(currentSettingsWidget.get());
+        }
+        else
+        {
+            pluginUnloadLabel->setVisible(true);
+            pluginUnloadLabel->setText(tr("Plugin does not have settings widget."));
+        }
     }
     else
     {
-        pluginUnloadLabel->setVisible(true);
-        pluginUnloadLabel->setText(tr("Plugin does not have settings widget."));
+        pluginGuiComponentsLabel->setText(tr("None"));
     }
 }
 

@@ -24,19 +24,17 @@ namespace Qv2ray::core::connection::generation::outbounds
 
         for (const auto &server : _servers)
         {
-            x.append(GenerateShadowSocksServerOUT(server.email, server.address, server.port, server.method, //
-                                                  server.password, server.ota, server.level));
+            x.append(GenerateShadowSocksServerOUT(server.address, server.port, server.method, server.password));
         }
 
         root.insert("servers", x);
         return root;
     }
 
-    OUTBOUNDSETTING GenerateShadowSocksServerOUT(const QString &email, const QString &address, int port, const QString &method,
-                                                 const QString &password, bool ota, int level)
+    OUTBOUNDSETTING GenerateShadowSocksServerOUT(const QString &address, int port, const QString &method, const QString &password)
     {
         OUTBOUNDSETTING root;
-        JADD(email, address, port, method, password, level, ota)
+        JADD(address, port, method, password)
         return root;
     }
 
@@ -53,8 +51,8 @@ namespace Qv2ray::core::connection::generation::outbounds
         return root;
     }
 
-    OUTBOUND GenerateOutboundEntry(const QString &tag, const QString &protocol, const OUTBOUNDSETTING &settings,
-                                   const QJsonObject &streamSettings, const QJsonObject &mux, const QString &sendThrough)
+    OUTBOUND GenerateOutboundEntry(const QString &tag, const QString &protocol, const OUTBOUNDSETTING &settings, const QJsonObject &streamSettings,
+                                   const QJsonObject &mux, const QString &sendThrough)
     {
         OUTBOUND root;
         JADD(sendThrough, protocol, settings, tag, streamSettings, mux)

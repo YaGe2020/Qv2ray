@@ -27,25 +27,30 @@ using Qv2ray::common::validation::IsIPv6Address;
 using Qv2ray::common::validation::IsValidDNSServer;
 using Qv2ray::common::validation::IsValidIPAddress;
 
-#define LOADINGCHECK                                                                                                                            \
-    if (!finishedLoading)                                                                                                                       \
+#define LOADINGCHECK                                                                                                                                 \
+    if (!finishedLoading)                                                                                                                            \
         return;
-#define NEEDRESTART                                                                                                                             \
-    LOADINGCHECK                                                                                                                                \
-    if (finishedLoading)                                                                                                                        \
+#define NEEDRESTART                                                                                                                                  \
+    LOADINGCHECK                                                                                                                                     \
+    if (finishedLoading)                                                                                                                             \
         NeedRestart = true;
 
-#define SET_PROXY_UI_ENABLE(_enabled)                                                                                                           \
-    qvProxyTypeCombo->setEnabled(_enabled);                                                                                                     \
-    qvProxyAddressTxt->setEnabled(_enabled);                                                                                                    \
+#define SET_PROXY_UI_ENABLE(_enabled)                                                                                                                \
+    qvProxyTypeCombo->setEnabled(_enabled);                                                                                                          \
+    qvProxyAddressTxt->setEnabled(_enabled);                                                                                                         \
     qvProxyPortCB->setEnabled(_enabled);
 
-#define SET_AUTOSTART_UI_ENABLED(_enabled)                                                                                                      \
-    autoStartConnCombo->setEnabled(_enabled);                                                                                                   \
+#define SET_AUTOSTART_UI_ENABLED(_enabled)                                                                                                           \
+    autoStartConnCombo->setEnabled(_enabled);                                                                                                        \
     autoStartSubsCombo->setEnabled(_enabled);
 
-PreferencesWindow::PreferencesWindow(QWidget *parent) : QvDialog(parent), CurrentConfig()
+PreferencesWindow::PreferencesWindow(QWidget *parent) : QvDialog("PreferenceWindow", parent), CurrentConfig()
 {
+    addStateOptions("width", { [&] { return width(); }, [&](QJsonValue val) { resize(val.toInt(), size().height()); } });
+    addStateOptions("height", { [&] { return height(); }, [&](QJsonValue val) { resize(size().width(), val.toInt()); } });
+    addStateOptions("x", { [&] { return x(); }, [&](QJsonValue val) { move(val.toInt(), y()); } });
+    addStateOptions("y", { [&] { return y(); }, [&](QJsonValue val) { move(x(), val.toInt()); } });
+
     setupUi(this);
     //
     QvMessageBusConnect(PreferencesWindow);
@@ -127,11 +132,7 @@ PreferencesWindow::PreferencesWindow(QWidget *parent) : QvDialog(parent), Curren
     tproxyEnableUDP->setChecked(CurrentConfig.inboundConfig.tProxySettings.hasUDP);
     tproxyMode->setCurrentText(CurrentConfig.inboundConfig.tProxySettings.mode);
     outboundMark->setValue(CurrentConfig.outboundConfig.mark);
-#ifndef Q_OS_LINUX
-    tproxGroupBox->setChecked(false);
-    tproxGroupBox->setEnabled(false);
-    tproxGroupBox->setToolTip(tr("tProxy is not supported on macOS and Windows"));
-#endif
+    //
     dnsIntercept->setChecked(CurrentConfig.defaultRouteConfig.connectionConfig.dnsIntercept);
     DnsFreedomCb->setChecked(CurrentConfig.defaultRouteConfig.connectionConfig.v2rayFreedomDNS);
     //
@@ -184,6 +185,7 @@ PreferencesWindow::PreferencesWindow(QWidget *parent) : QvDialog(parent), Curren
         setAllowInsecureCB->setChecked(CurrentConfig.advancedConfig.setAllowInsecure);
         setSessionResumptionCB->setChecked(CurrentConfig.advancedConfig.setSessionResumption);
         setTestLatenctCB->setChecked(CurrentConfig.advancedConfig.testLatencyPeriodcally);
+        disableSystemRootCB->setChecked(CurrentConfig.advancedConfig.disableSystemRoot);
     }
     //
     {
@@ -316,8 +318,7 @@ void PreferencesWindow::on_buttonBox_accepted()
     {
         QvMessageBoxWarn(this, tr("Preferences"), tr("Invalid tproxy listening ivp4 address."));
     }
-    else if (CurrentConfig.inboundConfig.tProxySettings.tProxyV6IP != "" &&
-             !IsIPv6Address(CurrentConfig.inboundConfig.tProxySettings.tProxyV6IP))
+    else if (CurrentConfig.inboundConfig.tProxySettings.tProxyV6IP != "" && !IsIPv6Address(CurrentConfig.inboundConfig.tProxySettings.tProxyV6IP))
     {
         QvMessageBoxWarn(this, tr("Preferences"), tr("Invalid tproxy listening ipv6 address."));
     }
@@ -418,11 +419,11 @@ void PreferencesWindow::on_listenIPTxt_textEdited(const QString &arg1)
 
     if (arg1 == "" || IsValidIPAddress(arg1))
     {
-        BLACK(listenIPTxt)
+        BLACK(listenIPTxt);
     }
     else
     {
-        RED(listenIPTxt)
+        RED(listenIPTxt);
     }
 
     // pacAccessPathTxt->setText("http://" + arg1 + ":" +
@@ -560,11 +561,11 @@ void PreferencesWindow::on_socksUDPIP_textEdited(const QString &arg1)
 
     if (IsValidIPAddress(arg1))
     {
-        BLACK(socksUDPIP)
+        BLACK(socksUDPIP);
     }
     else
     {
-        RED(socksUDPIP)
+        RED(socksUDPIP);
     }
 }
 
@@ -658,11 +659,11 @@ void PreferencesWindow::on_fpAddressTx_textEdited(const QString &arg1)
 
     if (IsValidIPAddress(arg1))
     {
-        BLACK(fpAddressTx)
+        BLACK(fpAddressTx);
     }
     else
     {
-        RED(fpAddressTx)
+        RED(fpAddressTx);
     }
 }
 
@@ -699,8 +700,7 @@ void PreferencesWindow::on_checkVCoreSettings_clicked()
     QString result;
 
     // prevent some bullshit situations.
-    if (const auto vCorePathSmallCased = vcorePath.toLower();
-        vCorePathSmallCased.endsWith("qv2ray") || vCorePathSmallCased.endsWith("qv2ray.exe"))
+    if (const auto vCorePathSmallCased = vcorePath.toLower(); vCorePathSmallCased.endsWith("qv2ray") || vCorePathSmallCased.endsWith("qv2ray.exe"))
     {
         const auto strWarnTitle = tr("Watch Out!");
         const auto strWarnContent = //
@@ -743,8 +743,7 @@ void PreferencesWindow::on_checkVCoreSettings_clicked()
     else
     {
         QvMessageBoxInfo(this, tr("V2Ray Core Settings"),
-                         tr("V2Ray path configuration check passed.") + NEWLINE + NEWLINE + tr("Current version of V2Ray is: ") + NEWLINE +
-                             result);
+                         tr("V2Ray path configuration check passed.") + NEWLINE + NEWLINE + tr("Current version of V2Ray is: ") + NEWLINE + result);
     }
 }
 
@@ -794,7 +793,7 @@ void PreferencesWindow::on_enableAPI_stateChanged(int arg1)
 void PreferencesWindow::on_updateChannelCombo_currentIndexChanged(int index)
 {
     LOADINGCHECK
-    CurrentConfig.updateConfig.updateChannel = index;
+    CurrentConfig.updateConfig.updateChannel = (Qv2rayConfig_Update::UpdateChannel) index;
     CurrentConfig.updateConfig.ignoredVersion.clear();
 }
 
@@ -906,11 +905,11 @@ void PreferencesWindow::on_tproxyListenAddr_textEdited(const QString &arg1)
 
     if (arg1 == "" || IsIPv4Address(arg1))
     {
-        BLACK(tproxyListenAddr)
+        BLACK(tproxyListenAddr);
     }
     else
     {
-        RED(tproxyListenAddr)
+        RED(tproxyListenAddr);
     }
 }
 
@@ -921,11 +920,11 @@ void PreferencesWindow::on_tproxyListenV6Addr_textEdited(const QString &arg1)
 
     if (arg1 == "" || IsIPv6Address(arg1))
     {
-        BLACK(tproxyListenV6Addr)
+        BLACK(tproxyListenV6Addr);
     }
     else
     {
-        RED(tproxyListenV6Addr)
+        RED(tproxyListenV6Addr);
     }
 }
 
@@ -1109,4 +1108,10 @@ void PreferencesWindow::on_bypassPrivateCb_clicked(bool checked)
     LOADINGCHECK
     NEEDRESTART
     CurrentConfig.defaultRouteConfig.connectionConfig.bypassLAN = checked;
+}
+
+void PreferencesWindow::on_disableSystemRootCB_stateChanged(int arg1)
+{
+    LOADINGCHECK
+    CurrentConfig.advancedConfig.disableSystemRoot = arg1 == Qt::Checked;
 }

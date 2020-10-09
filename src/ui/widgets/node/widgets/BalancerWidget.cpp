@@ -2,7 +2,6 @@
 
 #include "base/Qv2rayBase.hpp"
 
-
 BalancerWidget::BalancerWidget(std::shared_ptr<NodeDispatcher> _dispatcher, QWidget *parent) : QvNodeWidget(_dispatcher, parent)
 {
     setupUi(this);
@@ -80,10 +79,10 @@ void BalancerWidget::on_balancerTagTxt_textEdited(const QString &arg1)
     if (originalName == arg1 || dispatcher->RenameTag<NODE_OUTBOUND>(originalName, arg1))
     {
         outboundData->displayName = arg1;
-        BLACK(balancerTagTxt)
+        BLACK(balancerTagTxt);
     }
     else
     {
-        RED(balancerTagTxt)
+        RED(balancerTagTxt);
     }
 }

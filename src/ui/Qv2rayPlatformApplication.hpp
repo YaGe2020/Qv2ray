@@ -24,11 +24,7 @@
     #include <QFont>
     #include <QMessageBox>
 const static inline QMap<MessageOpt, QMessageBox::StandardButton> MessageBoxButtonMap = //
-    { { No, QMessageBox::No },
-      { OK, QMessageBox::Ok },
-      { Yes, QMessageBox::Yes },
-      { Cancel, QMessageBox::Cancel },
-      { Ignore, QMessageBox::Ignore } };
+    { { No, QMessageBox::No }, { OK, QMessageBox::Ok }, { Yes, QMessageBox::Yes }, { Cancel, QMessageBox::Cancel }, { Ignore, QMessageBox::Ignore } };
 #else
     #include <QCoreApplication>
 #endif
@@ -74,7 +70,9 @@ class Qv2rayPlatformApplication
 #endif
 #ifdef QV2RAY_GUI
     #ifdef Q_OS_LINUX
+        #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
         setFallbackSessionManagementEnabled(false);
+        #endif
         connect(this, &QGuiApplication::commitDataRequest, [] {
             RouteManager->SaveRoutes();
             ConnectionManager->SaveConnectionConfig();

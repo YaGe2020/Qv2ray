@@ -244,6 +244,14 @@ namespace Qv2ray::components::plugins
                 }
                 if (thisPluginCanHandle)
                 {
+                    // Populate Plugin Options
+                    {
+                        auto opt = plugin.pluginLoader->instance()->property(QV2RAY_PLUGIN_INTERNAL_PROPERTY_KEY).value<Qv2rayPluginOption>();
+                        opt[OPTION_SET_TLS_ALLOW_INSECURE] = GlobalConfig.advancedConfig.setAllowInsecure;
+                        opt[OPTION_SET_TLS_SESSION_RESUMPTION] = GlobalConfig.advancedConfig.setSessionResumption;
+                        opt[OPTION_SET_TLS_DISABLE_SYSTEM_CERTS] = GlobalConfig.advancedConfig.disableSystemRoot;
+                        plugin.pluginLoader->instance()->setProperty(QV2RAY_PLUGIN_INTERNAL_PROPERTY_KEY, QVariant::fromValue(opt));
+                    }
                     const auto &[protocol, outboundSettings] = serializer->DeserializeOutbound(sharelink, aliasPrefix, errMessage);
                     if (errMessage->isEmpty())
                     {
@@ -275,13 +283,10 @@ namespace Qv2ray::components::plugins
         }
         return {};
     }
-    const QString QvPluginHost::SerializeOutbound(const QString &protocol,             //
-                                                      const QJsonObject &outboundSettings, //
-                                                      const QString &alias,                //
-                                                      const QString &groupName,            //
-                                                      bool *status) const
+    const QString QvPluginHost::SerializeOutbound(const QString &protocol, const QJsonObject &settings, const QString &name, const QString &group,
+                                                  bool *ok) const
     {
-        *status = false;
+        *ok = false;
         for (const auto &plugin : plugins)
         {
             if (plugin.isLoaded && plugin.metadata.Components.contains(COMPONENT_OUTBOUND_HANDLER))
@@ -289,8 +294,8 @@ namespace Qv2ray::components::plugins
                 auto serializer = plugin.pluginInterface->GetOutboundHandler();
                 if (serializer && serializer->SupportedProtocols().contains(protocol))
                 {
-                    auto link = serializer->SerializeOutbound(protocol, alias, groupName, outboundSettings);
-                    *status = true;
+                    auto link = serializer->SerializeOutbound(protocol, name, group, settings);
+                    *ok = true;
                     return link;
                 }
             }
